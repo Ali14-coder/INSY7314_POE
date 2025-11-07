@@ -8,11 +8,13 @@ import EmployeeDashboard from "./components/employee/EmployeeDashboard";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import EmployeePendingPayments from "./components/employee/EmployeePendingPayments";
 import EmployeePaymentHistory from "./components/employee/EmployeePaymentHistory";
+import TransactionDetail from "./components/employee/TransactionDetail"; // <-- FIXED
 import AdminEmployeeManagement from "./components/admin/AdminEmployeeManagement";
 import CreateEmployee from "./components/admin/CreateEmployee";
 import AdminPayments from "./components/admin/AdminPayments";
 import "./components/Sidebar.css";
 import './index.css';
+
 
 function App() {
   const location = useLocation();
@@ -37,6 +39,9 @@ function App() {
             path="/employee/pending-payments"
             element={<EmployeePendingPayments />}
           />
+          {/* ✅ dynamic route with :id */}
+          <Route path="/employee/transaction-detail/:id" element={<TransactionDetail />} />
+
           <Route
             path="/employee/payment-history"
             element={<EmployeePaymentHistory />}
@@ -51,7 +56,7 @@ function App() {
           <Route path="/admin/create-employee" element={<CreateEmployee />} />
           <Route path="/admin/payments" element={<AdminPayments />} />
 
-          {/* Additional Admin Routes for future implementation */}
+          {/* Additional Admin Routes */}
           <Route
             path="/admin/edit-employee/:id"
             element={<div>Edit Employee Form (to be implemented)</div>}

@@ -54,30 +54,33 @@ const getOneTransaction = async (req, res) => {
 };
 
 // PUT method to update swift code status (approve or deny) of a particular customer
+// PUT /v1/employee/:id - Update status
 const updateStatus = async (req, res) => {
-  // first we get the ID from the url
-  const id = req.params.id;
-  // then the updated information from the body
-  const {  status, recipientReference, customerReference, amount, swiftCode } = req.body;
+  const transactionId = req.params.id;
+  const { status } = req.body;
+
+  // Validate status
+  if (!status || !["approved", "denied"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status. Must be 'approved' or 'denied'." });
+  }
 
   try {
-    // firstly find the transaction we need to update
-    const transaction = await Transaction.findById(id);
-
-    // if no transaction, inform the user and don't proceed any further
-    if (!transaction) {
-      res.status(404).json({ message: "No transaction found that matches that ID." });
-    }
-    
-    const updatedStatus = await Transaction.findByIdAndUpdate(
-      id,
-      { status, recipientReference, customerReference, amount, swiftCode },
-      { new: true }
+    const updatedTransaction = await Transaction.findByIdAndUpdate(
+      transactionId,
+      { status },
+      { new: true } // return updated document
     );
-   
-    res.status(202).json(updatedStatus);
+
+    if (!updatedTransaction) {
+      return res.status(404).json({ message: "No transaction found with that ID." });
+    }
+
+    res.status(200).json({
+      message: `Transaction ${updatedTransaction.transactionId} updated to ${status}.`,
+      transaction: updatedTransaction,
+    });
   } catch (error) {
-    // if things go south, spit out the error message
+    console.error("Error updating transaction status:", error);
     res.status(500).json({ error: error.message });
   }
 };

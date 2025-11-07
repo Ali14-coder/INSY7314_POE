@@ -1,58 +1,74 @@
 // src/components/employee/EmployeePendingPayments.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../Sidebar";
 import { CheckCircle, XCircle, Eye } from "lucide-react";
-
-// Demo data for pending payments
-const pendingPayments = [
-  {
-    id: 1001,
-    customerName: "Alice Johnson",
-    accountNumber: "ACC123456789",
-    amount: 1500.0,
-    currency: "USD",
-    recipientBank: "Bank of America",
-    recipientAccount: "BOA987654321",
-    swiftCode: "BOFAUS3N",
-    submittedAt: "2024-11-05T09:15:00Z",
-  },
-  {
-    id: 1002,
-    customerName: "Bob Wilson",
-    accountNumber: "ACC234567890",
-    amount: 2750.5,
-    currency: "EUR",
-    recipientBank: "Deutsche Bank",
-    recipientAccount: "DEUTDEFF789",
-    swiftCode: "DEUTDEFF",
-    submittedAt: "2024-11-05T10:30:00Z",
-  },
-  {
-    id: 1003,
-    customerName: "Carol Davis",
-    accountNumber: "ACC345678901",
-    amount: 500.0,
-    currency: "GBP",
-    recipientBank: "Barclays Bank",
-    recipientAccount: "BARCGB22XXX",
-    swiftCode: "BARCGB22",
-    submittedAt: "2024-11-05T11:45:00Z",
-  },
-];
+import axiosInstance, { initCsrf } from "../../interfaces/axiosInstance";
+import { updateStatus } from "../../services/apiService";
 
 export default function EmployeePendingPayments() {
-  const [payments, setPayments] = useState(pendingPayments);
-  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [updating, setUpdating] = useState(false);
 
-  const approvePayment = (paymentId) => {
-    setPayments(payments.filter((payment) => payment.id !== paymentId));
-    console.log("Approved payment:", paymentId);
-  };
+  useEffect(() => {
+    const fetchPendingTransactions = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        await initCsrf();
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No auth token found. Please log in again.");
 
-  const denyPayment = (paymentId) => {
-    setPayments(payments.filter((payment) => payment.id !== paymentId));
-    console.log("Denied payment:", paymentId);
-  };
+        const res = await axiosInstance.get("/employee/getPendingTransactions", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setPayments(res.data || []);
+      } catch (err) {
+        console.error("Failed to fetch pending transactions:", err);
+        setError(
+          err.response?.data?.message || err.message || "Could not load pending transactions."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPendingTransactions();
+  }, []);
+
+  // Update status using Mongo _id
+  const handleUpdateStatus = async (_id, status) => {
+  if (!["approved", "denied"].includes(status)) {
+    console.error("Invalid status:", status);
+    return;
+  }
+
+  setUpdating(true);
+  setError("");
+
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) throw new Error("No auth token found.");
+
+    // Send status as body
+    await updateStatus(_id, status, token);
+
+    setPayments((prev) =>
+      prev.map((p) => (p._id === _id ? { ...p, status } : p))
+    );
+
+    console.log(`Transaction ${_id} updated to ${status}`);
+  } catch (err) {
+    console.error("Failed to update status:", err);
+    setError(
+      err.response?.data?.message || err.message || "Failed to update transaction status."
+    );
+  } finally {
+    setUpdating(false);
+  }
+};
 
   return (
     <div
@@ -72,82 +88,79 @@ export default function EmployeePendingPayments() {
           </span>
         </div>
 
-        <div className="space-y-4">
-          {payments.length === 0 ? (
-            <div className="text-center py-12">
-              <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">
-                No Pending Payments
-              </h3>
-              <p className="text-gray-400">All payments have been processed.</p>
-            </div>
-          ) : (
-            payments.map((payment) => (
+        {loading ? (
+          <p className="text-white">Loading pending transactions...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : payments.length === 0 ? (
+          <div className="text-center py-12">
+            <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No Pending Payments</h3>
+            <p className="text-gray-400">All payments have been processed.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {payments.map((payment) => (
               <div
-                key={payment.id}
+                key={payment._id} // Use Mongo _id here too
                 className="bg-gray-800 rounded-lg p-6 border border-gray-700"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold">
-                      {payment.customerName}
-                    </h3>
-                    <p className="text-gray-400">
-                      Account: {payment.accountNumber}
-                    </p>
+                    <h3 className="text-xl font-semibold">{payment.customerId}</h3>
+                    <p className="text-gray-400">Transaction Id: {payment.transactionId}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-green-400">
-                      {payment.amount} {payment.currency}
+                      {payment.amount} R
                     </p>
                     <p className="text-sm text-gray-400">
-                      {new Date(payment.submittedAt).toLocaleDateString()}
+                      {new Date(payment.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                   <div>
-                    <span className="text-gray-400">Recipient Bank:</span>
-                    <p>{payment.recipientBank}</p>
+                    <span className="text-gray-400">Recipient Reference:</span>
+                    <p>{payment.recipientReference}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Customer Reference:</span>
+                    <p>{payment.customerReference}</p>
                   </div>
                   <div>
                     <span className="text-gray-400">SWIFT Code:</span>
                     <p>{payment.swiftCode}</p>
                   </div>
                   <div>
-                    <span className="text-gray-400">Recipient Account:</span>
-                    <p>{payment.recipientAccount}</p>
+                    <span className="text-gray-400">Status:</span>
+                    <p>{payment.status}</p>
                   </div>
                 </div>
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => approvePayment(payment.id)}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    onClick={() => handleUpdateStatus(payment._id, "approved")} // ✅ Use _id
+                    disabled={updating}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                   >
                     <CheckCircle size={18} />
                     Approve
                   </button>
                   <button
-                    onClick={() => denyPayment(payment.id)}
-                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    onClick={() => handleUpdateStatus(payment._id, "denied")} // ✅ Use _id
+                    disabled={updating}
+                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                   >
                     <XCircle size={18} />
                     Deny
                   </button>
-                  <button
-                    onClick={() => setSelectedPayment(payment)}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    <Eye size={18} />
-                    Details
-                  </button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

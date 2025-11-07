@@ -8,16 +8,31 @@ export const getPendingTransactions = () => axios.get('/employee/getPendingTrans
 // GET all verified transactions
 export const getVerifiedTransactions = () => {
   const token = localStorage.getItem("authToken");
-  return axiosInstance.get("/employee/getVerifiedTransactions", {
+  return axios.get("/employee/getVerifiedTransactions", {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 // GET a specific transaction by Id
-export const getOneTransaction = (id) => axios.get(`/employee/${id}`);
+// services/apiService.js
+export const getOneTransaction = (id) => {
+  const token = localStorage.getItem("authToken");
+  if (!token) throw new Error("No auth token found. Please log in.");
+
+  return axios.get(`/employee/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    withCredentials: true, // if your backend requires cookies for CSRF
+  });
+};
+
 
 // PUT request, to update an existing transaction
-export const updateStatus = (id, transactionData) => axios.put(`/employee/${id}`, transactionData);
+export const updateStatus = (id, status, token) =>
+  axios.put(`/employee/${id}`, { status }, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
 // POST to login an employee
 export const login = async (data) => {
