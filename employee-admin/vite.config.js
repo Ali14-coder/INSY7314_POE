@@ -12,6 +12,7 @@ export default defineConfig({
       //and pass our private kep, and certificate files (like the backend)
       key: fs.readFileSync('./certs/localhost+1-key.pem'),
       cert: fs.readFileSync('./certs/localhost+1.pem'),
-    }
+    },
+    port: 5174,
   }
 })
