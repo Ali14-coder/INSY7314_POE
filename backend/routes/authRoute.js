@@ -24,14 +24,16 @@ const staffRegisterSchema = {
   }
 };  
 
-// Schema for login
+//Schema for login
 const loginSchema = {
   body: {
-    userType: /^(customer)$/,
+    userType: { type: 'string', pattern: /^(customer)$/ },
     username: 'username',
-    password: 'password'
+    password: 'password',
+    accountNumber: { type: 'string', optional: true }
   }
 };
+
 
 // Schema for login
 const staffLoginSchema = {

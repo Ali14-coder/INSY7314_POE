@@ -10,6 +10,7 @@ const CustomerSchema = new mongoose.Schema({
   username: String,
   accountNumber: Number,
   password: String,
+  role: { type: String, default: 'customer' },
 });
 
 CustomerSchema.pre('save', async function(next) {

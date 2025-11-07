@@ -48,32 +48,34 @@ const getTransactionsByCustomer = async (req, res) => {
   }
 };
 
-// POST: create a transaction (customer only)
 const createTransaction = async (req, res) => {
   try {
-    if (!req.user || !req.user.id) return res.status(401).json({ message: "Unauthorized — please log in first." });
-    if (req.user.role !== 'customer') return res.status(403).json({ message: "Only customers can create transactions." });
+    const { amount, description, type } = req.body;
 
-    const { recipientReference, customerReference, amount, swiftCode, status } = req.body;
-    if (!recipientReference || !customerReference || !amount || !swiftCode) {
-      return res.status(400).json({ message: "Missing required fields." });
-    }
+    // The authenticated user (customer)
+    const customerId = req.user.id; // assuming you attach this in your auth middleware
 
-    const transaction = await Transaction.create({
-      customerId: req.user.customerId,
-      amount: req.body.amount,
-      recipientReference: req.body.recipientReference,
-      customerReference: req.body.customerReference,
-      swiftCode: req.body.swiftCode,
-      status: req.body.status || "pending",
+    const newTransaction = await Transaction.create({
+      customerId, // ✅ required by schema
+      amount,
+      description,
+      type,
+      date: new Date(),
     });
 
-    res.status(201).json({ message: "Transaction created successfully.", transaction });
-  } catch (error) {
-    console.error("Create Transaction Error:", error);
-    res.status(500).json({ message: "An error occurred while creating the transaction.", error: error.message });
+    return res.status(201).json({
+      message: "Transaction created successfully.",
+      transaction: newTransaction,
+    });
+  } catch (err) {
+    console.error("Create Transaction Error:", err);
+    return res.status(500).json({
+      message: "An error occurred while creating the transaction.",
+      error: err.message,
+    });
   }
 };
+
 
 // PUT: update transaction (employee only)
 const updateStatus = async (req, res) => {

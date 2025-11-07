@@ -130,28 +130,46 @@ const register = async (req, res) => {
 // LOGIN (CUSTOMERS, EMPLOYEES, ADMINS)
 const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, accountNumber, userType } = req.body;
 
     if (!username || !password)
-      return res.status(400).json({ message: "Missing credentials." });
+      return res.status(400).json({ message: "Missing username or password." });
 
-    // Try admin first
-    let user =
-      (await Admin.findOne({ username })) ||
-      (await Employee.findOne({ username })) ||
-      (await Customer.findOne({ username }));
+    let user;
 
-    if (!user) return res.status(400).json({ message: "Invalid credentials." });
+    if (userType === "customer") {
+      if (!accountNumber)
+        return res.status(400).json({ message: "Account number required for customers." });
 
-    const ok = await user.comparePassword(password);
-    if (!ok) return res.status(400).json({ message: "Invalid credentials." });
+      // ✅ Convert to Number if it’s a string
+      const accNum = Number(accountNumber);
 
+      if (isNaN(accNum))
+        return res.status(400).json({ message: "Account number must be numeric." });
+
+      user = await Customer.findOne({ username, accountNumber: accNum });
+      if (!user)
+        return res.status(400).json({ message: "Invalid username or account number." });
+    } else {
+      user = await Admin.findOne({ username }) || await Employee.findOne({ username });
+      if (!user)
+        return res.status(400).json({ message: "Invalid credentials." });
+    }
+
+    // ✅ Verify password safely
+    const validPassword = await user.comparePassword(password);
+    if (!validPassword)
+      return res.status(400).json({ message: "Invalid credentials." });
+
+    // ✅ Generate JWT with all fields
     const token = generateJwt(user);
 
     return res.status(200).json({
       message: "Login successful",
       token,
       role: user.role,
+      username: user.username,
+      accountNumber: user.accountNumber || null,
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -192,9 +210,14 @@ const staffLogin = async (req, res) => {
       role: user.role,
     });
   } catch (err) {
-    console.error("Login error:", err);
-    return res.status(500).json({ message: "Login failed", error: err.message });
-  }
+  console.error("Login error stack:", err);
+  return res.status(500).json({ 
+    message: "Login failed", 
+    error: err.message, 
+    stack: err.stack 
+  });
+}
+
 };
 
 
