@@ -51,7 +51,11 @@ export const getEmployees = (id) => axios.get('/employee/getEmployees');
 export const updateEmployee = (id, employeeData) => axios.put(`/admin/${id}`, employeeData);
 
 // DELETE request, to delete an existing employee
-export const deleteEmployee = (id, employeeData) => axios.put(`/admin/${id}`, employeeData);
+export const deleteEmployee = (_id, employeeData, token) =>
+  axios.delete(`/admin/${_id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: employeeData, // DELETE body goes here
+  });
 
 // POST to create a user
 export const createEmployee = (employeeData) => axios.post('/admin/createEmployee', employeeData);

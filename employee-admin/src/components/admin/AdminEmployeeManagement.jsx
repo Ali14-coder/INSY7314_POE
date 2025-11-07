@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import { Users, UserPlus, Trash2, Edit, Search } from "lucide-react";
-import axiosInstance from "../../interfaces/axiosInstance";
+import axiosInstance, { initCsrf } from "../../interfaces/axiosInstance";
+import { deleteEmployee as apiDeleteEmployee } from "../../services/apiService";
 
 export default function AdminEmployeeManagement() {
   const navigate = useNavigate();
@@ -16,23 +17,19 @@ export default function AdminEmployeeManagement() {
     const fetchEmployees = async () => {
       try {
         setLoading(true);
+        await initCsrf(); // ✅ ensure CSRF token is set
+
         const token = localStorage.getItem("authToken");
-        if (!token) {
-          setError("No auth token found. Please log in again.");
-          return;
-        }
+        if (!token) throw new Error("No auth token found. Please log in again.");
 
         const res = await axiosInstance.get("/admin/getEmployees", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        setEmployeeList(res.data); // check backend returns array directly
+        setEmployeeList(res.data || []);
       } catch (err) {
         console.error("Failed to fetch employees:", err);
-        setError(
-          err.response?.data?.message ||
-            "Could not load employees. Please try again."
-        );
+        setError(err.response?.data?.message || "Could not load employees. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -47,9 +44,25 @@ export default function AdminEmployeeManagement() {
       employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const deleteEmployee = (employeeId) => {
-    setEmployeeList(employeeList.filter((emp) => emp.employeeId !== employeeId));
-  };
+  //  Delete employee with CSRF
+  const handleDeleteEmployee = async (employee) => {
+  if (!window.confirm("Are you sure you want to delete this employee?")) return;
+
+  try {
+    await initCsrf(); // ensure CSRF token is set
+    const token = localStorage.getItem("authToken");
+    if (!token) throw new Error("No auth token found.");
+
+    await apiDeleteEmployee(employee._id, { status: "deleted" }, token);
+
+    setEmployeeList((prev) => prev.filter((emp) => emp._id !== employee._id));
+    console.log(`Employee ${employee.username} deleted successfully.`);
+  } catch (err) {
+    console.error("Failed to delete employee:", err);
+    alert(err.response?.data?.message || "Failed to delete employee. Please try again.");
+  }
+};
+
 
   const toggleEmployeeStatus = (employeeId) => {
     setEmployeeList(
@@ -76,7 +89,14 @@ export default function AdminEmployeeManagement() {
     );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "linear-gradient(135deg, #1a1a1a, #2a2a2a)", fontFamily: "Inter, sans-serif" }}>
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #1a1a1a, #2a2a2a)",
+        fontFamily: "Inter, sans-serif",
+      }}
+    >
       <Sidebar />
       <div style={{ flex: 1, padding: "2rem", color: "#fff" }}>
         {/* Header */}
@@ -85,11 +105,18 @@ export default function AdminEmployeeManagement() {
             <div style={titleSection}>
               <Users size={32} style={{ marginRight: "1rem" }} />
               <div>
-                <h1 style={{ fontSize: "2rem", fontWeight: "bold", margin: 0 }}>Employee Management</h1>
-                <p style={{ color: "#bbb", margin: 0 }}>Manage all employee accounts and permissions</p>
+                <h1 style={{ fontSize: "2rem", fontWeight: "bold", margin: 0 }}>
+                  Employee Management
+                </h1>
+                <p style={{ color: "#bbb", margin: 0 }}>
+                  Manage all employee accounts and permissions
+                </p>
               </div>
             </div>
-            <button style={primaryButton} onClick={() => navigate("/admin/create-employee")}>
+            <button
+              style={primaryButton}
+              onClick={() => navigate("/admin/create-employee")}
+            >
               <UserPlus size={20} style={{ marginRight: "0.5rem" }} /> Add Employee
             </button>
           </div>
@@ -126,21 +153,39 @@ export default function AdminEmployeeManagement() {
               <div key={employee.employeeId} style={tableRow}>
                 <div style={{ ...tableCell, flex: 2 }}>
                   <p style={{ fontWeight: "600", margin: 0 }}>{employee.username}</p>
-                  <p style={{ color: "#888", fontSize: "0.875rem", margin: 0 }}>{employee.role}</p>
+                  <p style={{ color: "#888", fontSize: "0.875rem", margin: 0 }}>
+                    {employee.role}
+                  </p>
                 </div>
                 <div style={tableCell}>N/A</div>
                 <div style={tableCell}>{employee.employeeId}</div>
                 <div style={tableCell}>
                   <button
                     onClick={() => toggleEmployeeStatus(employee.employeeId)}
-                    style={{ ...statusBadge, ...(employee.status === "inactive" ? inactiveBadge : activeBadge) }}
+                    style={{
+                      ...statusBadge,
+                      ...(employee.status === "inactive" ? inactiveBadge : activeBadge),
+                    }}
                   >
                     {employee.status?.toUpperCase() || "ACTIVE"}
                   </button>
                 </div>
                 <div style={{ ...tableCell, gap: "0.5rem", display: "flex" }}>
-                  <button style={editButton} onClick={() => navigate(`/admin/edit-employee/${employee.employeeId}`)}><Edit size={16} /></button>
-                  <button style={deleteButton} onClick={() => deleteEmployee(employee.employeeId)}><Trash2 size={16} /></button>
+                  <button
+                    style={editButton}
+                    onClick={() =>
+                      navigate(`/admin/edit-employee/${employee.employeeId}`)
+                    }
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+  style={deleteButton}
+  onClick={() => handleDeleteEmployee(employee)}
+>
+  <Trash2 size={16} />
+</button>
+
                 </div>
               </div>
             ))}
@@ -150,9 +195,13 @@ export default function AdminEmployeeManagement() {
         {filteredEmployees.length === 0 && (
           <div style={emptyState}>
             <Users size={48} color="#666" />
-            <h3 style={{ color: "#fff", margin: "1rem 0 0.5rem 0" }}>No employees found</h3>
+            <h3 style={{ color: "#fff", margin: "1rem 0 0.5rem 0" }}>
+              No employees found
+            </h3>
             <p style={{ color: "#888", margin: 0 }}>
-              {searchTerm ? "Try adjusting your search terms" : "Get started by adding your first employee"}
+              {searchTerm
+                ? "Try adjusting your search terms"
+                : "Get started by adding your first employee"}
             </p>
           </div>
         )}
@@ -162,13 +211,45 @@ export default function AdminEmployeeManagement() {
 }
 
 // ======== Styles ========
-const headerStyle = { background: "#2a2a2a", borderRadius: "0.75rem", padding: "1.5rem", marginBottom: "1.5rem" };
+const headerStyle = {
+  background: "#2a2a2a",
+  borderRadius: "0.75rem",
+  padding: "1.5rem",
+  marginBottom: "1.5rem",
+};
 const headerContent = { display: "flex", justifyContent: "space-between", alignItems: "center" };
 const titleSection = { display: "flex", alignItems: "center" };
-const primaryButton = { display: "flex", alignItems: "center", background: "#3b82f6", color: "white", border: "none", borderRadius: "0.5rem", padding: "0.75rem 1.5rem", fontSize: "1rem", fontWeight: "500", cursor: "pointer", transition: "background-color 0.2s" };
+const primaryButton = {
+  display: "flex",
+  alignItems: "center",
+  background: "#3b82f6",
+  color: "white",
+  border: "none",
+  borderRadius: "0.5rem",
+  padding: "0.75rem 1.5rem",
+  fontSize: "1rem",
+  fontWeight: "500",
+  cursor: "pointer",
+  transition: "background-color 0.2s",
+};
 const searchContainer = { marginBottom: "1.5rem" };
-const searchBox = { display: "flex", alignItems: "center", background: "#2a2a2a", borderRadius: "0.5rem", padding: "0.75rem 1rem", border: "1px solid #374151" };
-const searchInput = { flex: 1, background: "transparent", border: "none", color: "white", fontSize: "1rem", marginLeft: "0.5rem", outline: "none" };
+const searchBox = {
+  display: "flex",
+  alignItems: "center",
+  background: "#2a2a2a",
+  borderRadius: "0.5rem",
+  padding: "0.75rem 1rem",
+  border: "1px solid #374151",
+};
+const searchInput = {
+  flex: 1,
+  background: "transparent",
+  border: "none",
+  color: "white",
+  fontSize: "1rem",
+  marginLeft: "0.5rem",
+  outline: "none",
+};
 const tableContainer = { background: "#2a2a2a", borderRadius: "0.75rem", overflow: "hidden" };
 const tableHeader = { background: "#374151" };
 const tableRow = { display: "flex", alignItems: "center", padding: "1rem 1.5rem", borderBottom: "1px solid #374151" };
