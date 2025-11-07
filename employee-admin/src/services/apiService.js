@@ -5,8 +5,13 @@ import axios from '../interfaces/axiosInstance.js'
 // GET all pending transactions from the API
 export const getPendingTransactions = () => axios.get('/employee/getPendingTransactions');
 
-// GET all pending transactions
-export const getVerifiedTransactions = (id) => axios.get('/employee/getVerifiedTransactions');
+// GET all verified transactions
+export const getVerifiedTransactions = () => {
+  const token = localStorage.getItem("authToken");
+  return axiosInstance.get("/employee/getVerifiedTransactions", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
 
 // GET a specific transaction by Id
 export const getOneTransaction = (id) => axios.get(`/employee/${id}`);
