@@ -15,7 +15,11 @@ export const getOneTransaction = (id) => axios.get(`/employee/${id}`);
 export const updateStatus = (id, transactionData) => axios.put(`/employee/${id}`, transactionData);
 
 // POST to login an employee
-export const login = (employeeData) => axios.post('/auth/login', employeeData);
+export const staffLogin = async (data) => {
+  // Make sure CSRF is initialized first
+  await initCsrf();
+  return axiosInstance.post("/auth/staffLogin", data);
+};
 
 // --------Employee endpoints for admins------------
 // GET a specific employee by Id
