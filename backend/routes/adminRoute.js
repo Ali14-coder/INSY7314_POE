@@ -5,7 +5,7 @@ const {
 } = require('../controllers/adminController.js');
 
 const validateRequest = require('../middlewares/validateRequest');
-const employeeSchemas = require('../schemas/employeeSchema.js'); 
+const employeeSchemas = require('../schemas/employeeSchemas.js'); 
 const { verifyToken, authorizeRole } = require('../middlewares/authMiddleware.js');
 
 const router = express.Router();

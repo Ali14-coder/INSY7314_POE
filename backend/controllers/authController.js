@@ -72,6 +72,8 @@ const staffRegister = async (req, res) => {
 
 // Generate JWT containing role + ID
 function generateJwt(user) {
+  const expiresIn = process.env.JWT_EXPIRES_IN || "1h"; // fallback if missing
+
   return jwt.sign(
     {
       id: String(user._id),
@@ -79,9 +81,10 @@ function generateJwt(user) {
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { expiresIn }
   );
 }
+
 
 // REGISTER (CUSTOMERS ONLY)
 const register = async (req, res) => {
@@ -158,32 +161,42 @@ const login = async (req, res) => {
 
 // POST: Login endpoint
 const staffLogin = async (req, res) => {
-  const { userType, username, password } = req.body;;
+  const { userType, username, password } = req.body;
 
   console.log("Login request body:", req.body);
 
   try {
     const UserModel = userType === "admin" ? Admin : Employee;
 
-    if (!user) return res.status(400).json({ message: "Invalid credentials." });
+    // find user by username
+    const user = await UserModel.findOne({ username });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials." });
+    }
 
     const ok = await user.comparePassword(password);
-    if (!ok) return res.status(400).json({ message: "Invalid credentials." });
-
+    if (!ok) {
+      return res.status(400).json({ message: "Invalid credentials." });
+    }
 
     // Generate JWT
     const token = jwt.sign(
-      { username, userType, adminId: user._id },
+      { id: user._id, username: user.username, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({ message: `${userType} logged in successfully`, token });
+    res.status(200).json({
+      message: `${userType} logged in successfully`,
+      token,
+      role: user.role,
+    });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Login failed", error: err.message });
   }
 };
+
 
 // TEST PASSWORD
 const testPassword = async (req, res) => {

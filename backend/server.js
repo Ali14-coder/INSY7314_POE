@@ -8,8 +8,8 @@ const app = require("./app.js");
 const PORT = process.env.API_PORT || 3000;
 
 const options = {
-  key: fs.readFileSync("./localhost+2-key.pem"),
-  cert: fs.readFileSync("./localhost+2.pem"), 
+  key: fs.readFileSync("./certs/localhost+1-key.pem"),
+  cert: fs.readFileSync("./certs/localhost+1.pem"), 
 };
 
 connectToMongo()
