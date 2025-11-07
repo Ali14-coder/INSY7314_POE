@@ -1,30 +1,9 @@
 // src/components/Hero.jsx
-import { useState } from "react";
-import { Shield, Database, Code, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Shield, Database, Code } from "lucide-react";
 
 const Hero = () => {
-  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
-
-  const copyCode = () => {
-    const code = `// Secure Payment API Endpoint
-app.post('/api/payments', 
-  rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }),
-  helmet(),
-  csrf({ cookie: true }),
-  async (req, res) => {
-    // Secure payment processing logic
-    const hashedPassword = await bcrypt.hash(password, 12);
-    // Transaction validation and storage
-  }
-);`;
-
-    navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
 
   return (
     <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
@@ -36,22 +15,20 @@ app.post('/api/payments',
               <div className="flex items-center gap-2 mb-4">
                 <Shield className="text-blue-600" size={24} />
                 <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                  BANKING SECURITY PROJECT
+                  INTERNAL MANAGEMENT SYSTEM
                 </span>
               </div>
 
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Secure International{" "}
+                Streamlined Payment{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                  Payments Portal
+                  Operations
                 </span>
               </h1>
 
               <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed">
-                A React-based secure banking application for international
-                payments with SWIFT integration, featuring advanced security
-                measures, employee verification portals, and comprehensive
-                threat protection.
+                Optimize your payment processing workflow with our comprehensive
+                management platform designed for efficiency and reliability.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -60,117 +37,64 @@ app.post('/api/payments',
                   className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-4 px-8 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 transform hover:-translate-y-1"
                 >
                   <Code size={20} />
-                  Admin Login
-                </button>
-
-                <button
-                  onClick={() => navigate("/login")}
-                  className="group border-2 border-blue-600 text-blue-600 font-semibold py-4 px-8 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all duration-300"
-                >
-                  <Database size={20} />
-                  Employee Login
+                  Access Portal
                 </button>
               </div>
             </div>
 
-            {/* Right Content - Security Dashboard */}
+            {/* Right Content - Benefits Focus */}
             <div className="p-8 lg:p-12 lg:w-1/2 bg-gray-50 flex items-center justify-center">
               <div className="w-full max-w-md">
                 <div className="relative group">
-                  {/* Security Dashboard Preview */}
+                  {/* Benefits Preview */}
                   <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-300">
-                    <div className="flex gap-2 mb-4">
+                    <div className="flex gap-2 mb-6">
                       <div className="w-3 h-3 rounded-full bg-red-400"></div>
                       <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
                       <div className="w-3 h-3 rounded-full bg-green-400"></div>
                     </div>
 
-                    {/* Security Status */}
+                    {/* Benefits Showcase */}
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-3">
-                          <CheckCircle className="text-green-600" size={20} />
-                          <span className="font-medium text-green-800">
-                            SQL Injection Protection
-                          </span>
-                        </div>
-                        <span className="text-green-600 text-sm font-semibold">
-                          Active
-                        </span>
+                      <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <Database
+                          className="text-blue-600 mx-auto mb-2"
+                          size={32}
+                        />
+                        <h3 className="font-semibold text-blue-800">
+                          Operational Efficiency
+                        </h3>
+                        <p className="text-blue-600 text-sm mt-1">
+                          Reduce processing time and manual effort
+                        </p>
                       </div>
 
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-3">
-                          <CheckCircle className="text-green-600" size={20} />
-                          <span className="font-medium text-green-800">
-                            XSS Protection
-                          </span>
-                        </div>
-                        <span className="text-green-600 text-sm font-semibold">
-                          Active
-                        </span>
+                      <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <Shield
+                          className="text-purple-600 mx-auto mb-2"
+                          size={32}
+                        />
+                        <h3 className="font-semibold text-purple-800">
+                          Workflow Optimization
+                        </h3>
+                        <p className="text-purple-600 text-sm mt-1">
+                          Streamlined approval processes
+                        </p>
                       </div>
 
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-3">
-                          <CheckCircle className="text-green-600" size={20} />
-                          <span className="font-medium text-green-800">
-                            Session Security
-                          </span>
-                        </div>
-                        <span className="text-green-600 text-sm font-semibold">
-                          Active
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-3">
-                          <CheckCircle className="text-green-600" size={20} />
-                          <span className="font-medium text-green-800">
-                            DDoS Protection
-                          </span>
-                        </div>
-                        <span className="text-green-600 text-sm font-semibold">
-                          Active
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="flex items-center gap-3">
-                          <CheckCircle className="text-green-600" size={20} />
-                          <span className="font-medium text-green-800">
-                            Clickjacking Protection
-                          </span>
-                        </div>
-                        <span className="text-green-600 text-sm font-semibold">
-                          Active
-                        </span>
-                      </div>
-
-                      {/* Code Snippet */}
-                      <div className="bg-gray-900 rounded-lg p-4 font-mono text-xs text-gray-100 relative">
-                        <button
-                          onClick={copyCode}
-                          className="absolute top-2 right-2 flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white py-1 px-2 rounded text-xs transition-colors"
-                        >
-                          {copied ? "Copied!" : "Copy"}
-                        </button>
-                        <pre>
-                          <code>{`// Rate limiting & CSRF protection
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100
-}));
-app.use(helmet());
-app.use(csrf({ cookie: true }));`}</code>
-                        </pre>
+                      <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                        <Code
+                          className="text-green-600 mx-auto mb-2"
+                          size={32}
+                        />
+                        <h3 className="font-semibold text-green-800">
+                          Real-time Monitoring
+                        </h3>
+                        <p className="text-green-600 text-sm mt-1">
+                          Instant visibility into payment status
+                        </p>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Floating Elements */}
-                  <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-                    Secure
                   </div>
                 </div>
               </div>
