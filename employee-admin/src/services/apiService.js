@@ -16,8 +16,8 @@ export const updateStatus = (id, transactionData) => axios.put(`/employee/${id}`
 
 // POST to login an employee
 export const login = async (data) => {
-  console.log("📤 Sending login request:", data); // ✅ check what is sent
-  return api.post("/api/auth/login", data);
+  console.log("📤 Sending login request:", data); 
+  return axios.post("/auth/login", data);
 };
 
 // --------Employee endpoints for admins------------

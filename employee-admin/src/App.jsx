@@ -12,6 +12,7 @@ import AdminEmployeeManagement from "./components/admin/AdminEmployeeManagement"
 import CreateEmployee from "./components/admin/CreateEmployee";
 import AdminPayments from "./components/admin/AdminPayments";
 import "./components/Sidebar.css";
+import './index.css';
 
 function App() {
   const location = useLocation();
