@@ -42,7 +42,7 @@ const LoginPage = () => {
     const payload = {
       username,
       password,
-      role: selectedRole,
+      userType: selectedRole,
     };
 
     console.log("Submitting login payload:", payload);
