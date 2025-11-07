@@ -51,43 +51,39 @@ const getEmployee = async (req, res) => {
   }
 };
 
-// POST method to create a new employee
+// CREATE EMPLOYEE
 const createEmployee = async (req, res) => {
   try {
-    // Ensure the user is logged in and has an ID
-    if (!req.user || !req.user.adminId) {
-      return res.status(401).json({ message: "Unauthorized — please log in first." });
-    }
+    const { username, password, role } = req.body;
 
-    const { username, password } = req.body;
-    const employeeId = req.user.employeeId; 
-
-    // Validate required fields
-    if (!username || !password) {
+    if (!username || !password || !role) {
       return res.status(400).json({
-        message: "Missing required fields: username, password."
+        message: "Username, password, and role are required.",
       });
     }
 
-    // Create the employee
-    const employee = await Employee.create({
-      username, 
-      password
-    });
+    const existing = await Employee.findOne({ username });
+    if (existing)
+      return res.status(409).json({ message: "Username already exists." });
+
+    if (role !== "employee") {
+      return res.status(400).json({ message: "Invalid role. Only 'employee' allowed." });
+    }
+
+    const newEmployee = await Employee.create({ username, password, role });
 
     res.status(201).json({
       message: "Employee created successfully.",
-      employee
+      employee: {
+        id: newEmployee._id,
+        username: newEmployee.username,
+        role: newEmployee.role,
+      },
     });
   } catch (error) {
-    console.error("Create Employee Error:", error);
-    res.status(500).json({
-      message: "An error occurred while creating the employee.",
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
 };
-
 
 // PUT method to update an employee's account details
 const updateEmployee = async (req, res) => {

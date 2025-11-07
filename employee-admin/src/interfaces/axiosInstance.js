@@ -1,21 +1,23 @@
-// src/services/axiosInstance.js
+// frontend/interfaces/axiosInstance.js
 import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: "https://localhost:3000/v1",
-  withCredentials: true, // important for cookies
-  //headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true, // allow cookies (required for CSRF)
 });
 
+// Fetch CSRF token and attach to all requests
 export const initCsrf = async () => {
   try {
     const res = await axios.get("https://localhost:3000/csrf-token", {
       withCredentials: true,
     });
-    axiosInstance.defaults.headers.common["X-CSRF-Token"] = res.data.csrfToken;
-    console.log("CSRF token initialized:", res.data.csrfToken);
+    const token = res.data.csrfToken;
+    axiosInstance.defaults.headers.common["X-CSRF-Token"] = token;
+    console.log("CSRF token initialized");
   } catch (err) {
-    console.error("CSRF initialization failed:", err);
+    console.error("Failed to initialize CSRF token:", err);
   }
 };
 

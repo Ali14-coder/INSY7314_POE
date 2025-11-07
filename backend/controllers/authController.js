@@ -143,36 +143,35 @@ const register = async (req, res) => {
   }
 };
 
-// POST: Login endpoint
+// LOGIN (CUSTOMERS, EMPLOYEES, ADMINS)
 const login = async (req, res) => {
-  const { userType, username, accountNumber, password } = req.body;;
-
-  console.log("Login request body:", req.body);
-
   try {
-    const UserModel = userType === "customer" ? Customer : Employee;
+    const { username, password } = req.body;
 
-    // Find user
-    const user = await UserModel.findOne({ username });
+    if (!username || !password)
+      return res.status(400).json({ message: "Missing credentials." });
+
+    // Try admin first
+    let user =
+      (await Admin.findOne({ username })) ||
+      (await Employee.findOne({ username })) ||
+      (await Customer.findOne({ username }));
+
     if (!user) return res.status(400).json({ message: "Invalid credentials." });
 
-    // Compare password using model method
-    const matching = await user.comparePassword(password);
-    console.log("Password matches?", matching);
+    const ok = await user.comparePassword(password);
+    if (!ok) return res.status(400).json({ message: "Invalid credentials." });
 
-    if (!matching) return res.status(400).json({ message: "Invalid credentials." });
+    const token = generateJwt(user);
 
-    // Generate JWT
-    const token = jwt.sign(
-      { username, userType, customerId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    res.status(200).json({ message: `${userType} logged in successfully`, token });
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      role: user.role,
+    });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ message: "Login failed", error: err.message });
   }
 };
 
