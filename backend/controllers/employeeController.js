@@ -1,4 +1,4 @@
-//controllers/transactionController.js
+//controllers/employeeController.js
 const Transaction = require("../models/transactionModel.js");
 const Employee = require("../models/employeeModel.js");
 

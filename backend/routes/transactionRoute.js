@@ -1,3 +1,4 @@
+// server/routes/transactionRoute.js
 const express = require('express');
 const {
   getTransaction,
@@ -10,24 +11,21 @@ const {
 
 const validateRequest = require('../middlewares/validateRequest');
 const txSchemas = require('../schemas/transactionSchemas.js');
-const { verifyToken, authorizeRole, } = require('../middlewares/authMiddleware.js');
+const { verifyToken, authorizeRole } = require('../middlewares/authMiddleware.js');
 
 const router = express.Router();
 
-// GET all transactions — customer sees own, employee sees all
-router.get('/getTransactions', verifyToken, getTransactions);
+router.get('/getTransactions', verifyToken, authorizeRole(['employee','admin']), getTransactions);
 
-// GET a transaction by ID — only owner (customer) or employee
-router.get('/:id', verifyToken, validateRequest(txSchemas.getTransaction), getTransaction);
-
-//GET method to retreive customer specific transaction
 router.get(
   '/customer/:customerId',
   verifyToken,
-  authorizeRole(['customer']),
+  authorizeRole(['customer','employee','admin']),
   getTransactionsByCustomer
 );
-// POST create transaction — customers only
+
+router.get('/:id', verifyToken, validateRequest(txSchemas.getTransaction), getTransaction);
+
 router.post(
   '/createTransaction',
   verifyToken,
@@ -36,7 +34,6 @@ router.post(
   createTransaction
 );
 
-// PUT update status — employees only
 router.put(
   '/:id',
   verifyToken,
@@ -45,7 +42,6 @@ router.put(
   updateStatus
 );
 
-// DELETE transaction — employees only
 router.delete(
   '/:id',
   verifyToken,

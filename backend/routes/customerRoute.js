@@ -13,18 +13,15 @@ const { verifyToken } = require('../middlewares/authMiddleware.js');
 
 const router = express.Router();
 
-// PUT /api/customers/:id
 router.put(
   '/:id',
-  verifyToken, // <--- protect this route
+  verifyToken,
   validateRequest(customerSchemas.updateCustomer),
   updateCustomer
 );
 
-// GET /api/customers/getCustomers
 router.get('/getCustomers', verifyToken, getCustomers);
 
-// GET /api/customers/:id
 router.get(
   '/:id',
   verifyToken,
@@ -32,7 +29,6 @@ router.get(
   getCustomer
 );
 
-// DELETE /api/customers/:id
 router.delete(
   '/:id',
   verifyToken,

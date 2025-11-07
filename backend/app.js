@@ -42,6 +42,7 @@ app.use(morgan("dev"));
 app.use((req, res, next) => {
   if (req.body) req.body = sanitize(req.body);
   if (req.params) req.params = sanitize(req.params);
+  if (req.query) req.query = sanitize(req.query);
   next();
 });
 app.use((req, res, next) => {
@@ -50,20 +51,40 @@ app.use((req, res, next) => {
 });
 
 // ---------- Rate Limiting ----------
-const generalLimiter = rateLimit({ windowMs: 15*60*1000, max: 200 });
-const loginLimiter = rateLimit({ windowMs: 10*60*1000, max: 5 });
-const registerLimiter = rateLimit({ windowMs: 60*60*1000, max: 10 });
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many requests, please try again later.",
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 min
+  max: 5, // 5 attempts per 10 minutes
+  message: "Too many login attempts. Please try again in 10 minutes.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 registrations per hour
+  message: "Too many registration attempts from this IP. Try in an hour.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 app.use(generalLimiter);
 app.use("/v1/auth/login", loginLimiter);
 app.use("/v1/auth/register", registerLimiter);
 app.use("/v1/auth/staffLogin", loginLimiter);
 
-// ---------- CSRF Setup ----------
+app.use(cookieParser());
 const csrfProtection = csrf({
   cookie: {
     httpOnly: true,
-    secure: false,       // false for localhost
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   },
 });
@@ -82,7 +103,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---------- API Routes ----------
 app.use("/v1/auth", authRoute);
 app.use("/v1/bank", bankRoute);
 app.use("/v1/customer", customerRoute);

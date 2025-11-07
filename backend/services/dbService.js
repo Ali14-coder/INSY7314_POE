@@ -4,7 +4,6 @@ require('dotenv').config()
 
 const connectToMongo = async () => {
     try {
-        // Remove the deprecated options - they're not needed anymore
         await mongoose.connect(process.env.CONN_STRING);
         console.log("Connected to mongo database successfully.")
     } catch (err) {

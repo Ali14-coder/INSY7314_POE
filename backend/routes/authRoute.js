@@ -4,7 +4,6 @@ const validateRequest = require('../middlewares/validateRequest');
 
 const router = express.Router();
 
-// Schema for register
 const registerSchema = {
   body: {
     userType: /^(customer|employee)$/,

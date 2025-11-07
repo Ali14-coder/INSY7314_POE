@@ -1,21 +1,21 @@
-// /server/schemas/authSchemas.js
+// server/schemas/authSchemas.js
 module.exports = {
   registerSchema: {
     body: {
-      userType: { pattern: /^(customer|employee)$/, optional: false },
-      username: 'username',
-      password: 'password',
-      fullName: { pattern: 'fullName', optional: true },
-      nationalId: { pattern: 'nationalId', optional: true },
-      accountNumber: { pattern: 'accountNumber', optional: true }
-    }
+      username: "username",
+      password: "password",
+      firstName: "fullName",
+      lastName: "fullName",
+      nationalId: "nationalId",
+      accountNumber: "accountNumber",
+    },
   },
 
   loginSchema: {
-    body: {
-      userType: { pattern: /^(customer|employee)$/, optional: false },
-      username: 'username',
-      password: 'password'
-    }
+  body: {
+    userType: { pattern: /^(customer|employee|admin)$/, optional: false },
+    username: "username",
+    password: "password"
   }
+},
 };

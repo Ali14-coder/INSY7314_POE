@@ -1,23 +1,22 @@
-// /server/schemas/transactionSchemas.js
+// server/schemas/transactionSchemas.js
 module.exports = {
   createTransaction: {
     body: {
-      status: { default: 'pending', optional: true },
-      customerId: 'objectId',
-      amount: 'number',
-      recipientReference: { type: 'string', optional: true },
-      customerReference: { type: 'string', optional: true },
-      swiftCode: { pattern: 'swift', optional: true },
+      customerId: { pattern: 'objectId', optional: true },
+      amount: 'amount',
+      recipientReference: { pattern: /^[\w\s\.\-]{1,80}$/, optional: true }, // simple safe pattern
+      customerReference: { pattern: /^[\w\s\.\-]{1,80}$/, optional: true },
+      swiftCode: { pattern: 'swift', optional: false },
+      status: { pattern: /^(pending|completed|failed|false)$/, optional: true }
     }
   },
 
   updateStatus: {
     params: { id: 'objectId' },
-    body: { status: 'string' }
+    body: { status: 'status' }
   },
 
   getTransaction: {
     params: { id: 'objectId' }
   }
 };
-

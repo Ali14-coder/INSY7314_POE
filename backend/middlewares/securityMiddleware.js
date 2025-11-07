@@ -3,15 +3,14 @@ const helmet = require('helmet');
 const cors = require('cors');
 
 const allowedOrigins = [
-  'http://localhost:5173',   // Vite default
-  'http://localhost:3000',   // React dev server alternate
-  'https://localhost:5173',  // in case using https
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://localhost:5173',  
   'https://localhost:3000'
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -37,7 +36,7 @@ const securityMiddlewares = (app) => {
     ieNoOpen: true,
   }));
 
-  app.use(cors(corsOptions)); // Correct CORS setup
+  app.use(cors(corsOptions));
 
   console.log(" Helmet and CORS security middleware applied.");
 };
