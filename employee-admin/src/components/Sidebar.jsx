@@ -65,7 +65,7 @@ export default function Sidebar() {
               <UserPlus size={20} />
               {!collapsed && <span>Create Employee</span>}
             </NavLink>
-            <NavLink
+            {/* <NavLink
               to="/admin/payments"
               className={({ isActive }) =>
                 isActive ? "app-link active" : "app-link"
@@ -73,7 +73,7 @@ export default function Sidebar() {
             >
               <FolderOpen size={20} />
               {!collapsed && <span>All Payments</span>}
-            </NavLink>
+            </NavLink> */}
           </>
         ) : (
           <>
